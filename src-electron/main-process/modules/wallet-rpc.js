@@ -1119,81 +1119,82 @@ export class WalletRPC {
         })
     }
 
-    getAddressList () {
-        return new Promise((resolve, reject) => {
-            Promise.all([
-                this.sendRPC("get_address", { account_index: 0 }),
-                this.sendRPC("getbalance", { account_index: 0 })
-            ]).then((data) => {
-                for (let n of data) {
-                    if (n.hasOwnProperty("error") || !n.hasOwnProperty("result")) {
-                        resolve({})
-                        return
-                    }
+    getAddressList() {
+        return new Promise(resolve => {
+          Promise.all([
+            this.sendRPC("get_address", { account_index: 0 }),
+            this.sendRPC("getbalance", { account_index: 0 })
+          ]).then(data => {
+            for (let n of data) {
+              if (n.hasOwnProperty("error") || !n.hasOwnProperty("result")) {
+                resolve({});
+                return;
+              }
+            }
+    
+            let num_unused_addresses = 10;
+    
+            let wallet = {
+              info: {
+                address: data[0].result.address,
+                balance: data[1].result.balance,
+                unlocked_balance: data[1].result.unlocked_balance
+                // num_unspent_outputs: data[1].result.num_unspent_outputs
+              },
+              address_list: {
+                primary: [],
+                used: [],
+                unused: []
+              }
+            };
+    
+            for (let address of data[0].result.addresses) {
+              address.balance = null;
+              address.unlocked_balance = null;
+              address.num_unspent_outputs = null;
+    
+              if (data[1].result.hasOwnProperty("per_subaddress")) {
+                for (let address_balance of data[1].result.per_subaddress) {
+                  if (address_balance.address_index == address.address_index) {
+                    address.balance = address_balance.balance;
+                    address.unlocked_balance = address_balance.unlocked_balance;
+                    address.num_unspent_outputs = address_balance.num_unspent_outputs;
+                    break;
+                  }
                 }
-
-                let num_unused_addresses = 10
-
-                let wallet = {
-                    info: {
-                        address: data[0].result.address,
-                        balance: data[1].result.balance,
-                        unlocked_balance: data[1].result.unlocked_balance
-                        // num_unspent_outputs: data[1].result.num_unspent_outputs
-                    },
-                    address_list: {
-                        primary: [],
-                        used: [],
-                        unused: []
-                    }
-                }
-
-                for (let address of data[0].result.addresses) {
-                    address.balance = null
-                    address.unlocked_balance = null
-                    address.num_unspent_outputs = null
-
-                    if (data[1].result.hasOwnProperty("per_subaddress")) {
-                        for (let address_balance of data[1].result.per_subaddress) {
-                            if (address_balance.address_index == address.address_index) {
-                                address.balance = address_balance.balance
-                                address.unlocked_balance = address_balance.unlocked_balance
-                                address.num_unspent_outputs = address_balance.num_unspent_outputs
-                                break
-                            }
-                        }
-                    }
-
-                    if (address.address_index == 0) {
-                        wallet.address_list.primary.push(address)
-                    } else if (address.used) {
-                        wallet.address_list.used.push(address)
-                    } else {
-                        wallet.address_list.unused.push(address)
-                    }
-                }
-
-                // limit to 10 unused addresses
-                wallet.address_list.unused = wallet.address_list.unused.slice(0, 10)
-
-                if (wallet.address_list.unused.length < num_unused_addresses &&
-                   !wallet.address_list.primary[0].address.startsWith("RYoK") &&
-                   !wallet.address_list.primary[0].address.startsWith("RYoH")) {
-                    for (let n = wallet.address_list.unused.length; n < num_unused_addresses; n++) {
-                        this.sendRPC("create_address", { account_index: 0 }).then((data) => {
-                            wallet.address_list.unused.push(data.result)
-                            if (wallet.address_list.unused.length == num_unused_addresses) {
-                                // should sort them here
-                                resolve(wallet)
-                            }
-                        })
-                    }
-                } else {
-                    resolve(wallet)
-                }
-            })
-        })
-    }
+              }
+    
+              if (address.address_index == 0) {
+                wallet.address_list.primary.push(address);
+              } else if (address.used) {
+                wallet.address_list.used.push(address);
+              } else {
+                wallet.address_list.unused.push(address);
+              }
+            }
+    
+            // limit to 10 unused addresses
+            wallet.address_list.unused = wallet.address_list.unused.slice(0, 10);
+    
+            if (wallet.address_list.unused.length < num_unused_addresses) {
+              for (let n = wallet.address_list.unused.length; n < num_unused_addresses; n++) {
+                this.sendRPC("create_address", {
+                  account_index: 0
+                }).then(data => {
+                  wallet.address_list.unused.push(data.result);
+                  if (wallet.address_list.unused.length == num_unused_addresses) {
+                    // should sort them here
+                    resolve(wallet);
+                  }
+                });
+              }
+            } else {
+              resolve(wallet);
+            }
+          });
+        });
+      }
+    
 
     getTransactions () {
         return new Promise((resolve, reject) => {
@@ -1266,12 +1267,14 @@ export class WalletRPC {
                             entry.description = ""
                         }
 
+                        entry.payment_id = ""
+/*
                         if (/^0*$/.test(entry.payment_id)) {
                             entry.payment_id = ""
                         } else if (/^0*$/.test(entry.payment_id.substring(16))) {
                             entry.payment_id = entry.payment_id.substring(0, 16)
                         }
-
+*/
                         if (entry.starred) { wallet.address_list.address_book_starred.push(entry) } else { wallet.address_list.address_book.push(entry) }
                     }
                 }
