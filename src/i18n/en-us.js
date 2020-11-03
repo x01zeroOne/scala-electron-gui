@@ -452,7 +452,7 @@ export default {
     peerList: "Peer list",
     priorityOptions: {
       automatic: "Automatic",
-      slow: "Slow",
+      slow: "Normal",
       normal: "Normal",
       fast: "Fast",
       fastest: "Fastest",

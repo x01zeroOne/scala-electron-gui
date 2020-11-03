@@ -161,7 +161,6 @@ export default {
   mixins: [WalletPassword],
   data() {
     let priorityOptions = [
-      { label: this.$t("strings.priorityOptions.blink"), value: 5 }, // Blink
       { label: this.$t("strings.priorityOptions.slow"), value: 1 } // Slow
     ];
     return {
@@ -169,7 +168,7 @@ export default {
         amount: 0,
         address: "",
         payment_id: "",
-        priority: priorityOptions[0],
+        priority: 0,
         address_book: {
           save: false,
           name: "",
