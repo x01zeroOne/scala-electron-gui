@@ -65,7 +65,7 @@
           </ScalaField>
         </div>
 
-        <!-- Payment ID -->
+        <!-- Payment ID 
         <div class="col q-mt-sm">
           <ScalaField :label="$t('fieldLabels.paymentId')" :error="$v.newTx.payment_id.$error" optional>
             <q-input
@@ -82,6 +82,7 @@
             />
           </ScalaField>
         </div>
+        -->
 
         <!-- Notes -->
         <div class="col q-mt-sm">
