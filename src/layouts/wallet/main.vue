@@ -35,24 +35,6 @@
               align="between"
             />
           </router-link>
-          <router-link to="/wallet/servicenode">
-            <q-btn
-              class="large-btn"
-              :label="$t('buttons.serviceNode')"
-              size="md"
-              icon-right="router"
-              align="between"
-            />
-          </router-link>
-          <router-link to="/wallet/lns">
-            <q-btn
-              class="large-btn"
-              :label="$t('buttons.lns')"
-              size="md"
-              icon-right="text_fields"
-              align="between"
-            />
-          </router-link>
           <router-link to="/wallet/advanced">
             <q-btn
               class="large-btn"

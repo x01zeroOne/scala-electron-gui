@@ -34,33 +34,29 @@
         <p class="q-my-sm">Wallet Version: v{{ version }}</p>
         <p class="q-my-sm">Deaemon Version: v{{ daemonVersion }}</p>
         <p class="q-my-sm">Copyright (c) 2018-2020, Scala Project</p>
+        <p class="q-my-sm">Copyright (c) 2018-2020, Loki Project</p>
         <p class="q-my-sm">Copyright (c) 2018, Ryo Currency Project</p>
+
         <p class="q-my-sm">All rights reserved.</p>
 
         <div class="q-mt-md q-mb-lg external-links">
           <p>
-            <a href="#" @click="openExternal('https://scala.network/')"
-              >https://scala.network/</a
+            <a href="#" @click="openExternal('https://scalaproject.io/')"
+              >https://scalaproject.io/</a
             >
           </p>
           <p>
-            <a
-              href="#"
-              @click="
-                openExternal('https://t.me/joinchat/DeNvR0JJ4JPn6TVSQjCsZQ')
-              "
+            <a href="#" @click="openExternal('https://t.me/scalaofficial')"
               >Telegram</a
             >
             -
-            <a
-              href="#"
-              @click="openExternal('https://discordapp.com/invite/67GXfD6')"
+            <a href="#" @click="openExternal('https://discord.gg/QfCWRfx')"
               >Discord</a
             >
             -
             <a
               href="#"
-              @click="openExternal('https://www.reddit.com/r/ScalaProject/')"
+              @click="openExternal('https://www.reddit.com/r/ScalaNetwork/')"
               >Reddit</a
             >
             -

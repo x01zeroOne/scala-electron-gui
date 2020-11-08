@@ -69,8 +69,8 @@ export class Backend {
     const daemons = {
       mainnet: {
         ...daemon,
-        remote_host: "imaginary.stream",
-        remote_port: 22023
+        remote_host: "scalanode.com",
+        remote_port: 11812
       },
       stagenet: {
         ...daemon,
@@ -92,11 +92,11 @@ export class Backend {
       app: {
         data_dir: this.config_dir,
         wallet_data_dir: this.wallet_dir,
-        ws_bind_port: 12313,
+        ws_bind_port: 12314,
         net_type: "mainnet"
       },
       wallet: {
-        rpc_bind_port: 18082,
+        rpc_bind_port: 19891,
         log_level: 0
       }
     };
@@ -111,20 +111,16 @@ export class Backend {
 
     this.remotes = [
       {
-        host: "imaginary.stream",
-        port: "22023"
+        host: "scalanode.com",
+        port: "11812"
       },
       {
-        host: "nodes.hashvault.pro",
-        port: "22023"
+        host: "xlanode.com",
+        port: "11812"
       },
       {
-        host: "explorer.scala.aussie-pools.com",
-        port: "18081"
-      },
-      {
-        host: "public.scala.foundation",
-        port: "22023"
+        host: "mine.scalaproject.io",
+        port: "8000"
       }
     ];
 
