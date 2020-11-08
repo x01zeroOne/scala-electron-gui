@@ -16,7 +16,10 @@
             </div>
           </div>
           <div class="row unlocked">
-            <span>{{ $t("strings.scalaUnlockedShort") }}: <FormatScala :amount="info.unlocked_balance"/></span>
+            <span
+              >{{ $t("strings.scalaUnlockedShort") }}:
+              <FormatScala :amount="info.unlocked_balance"
+            /></span>
           </div>
         </div>
       </div>
@@ -31,7 +34,7 @@
 <script>
 import { mapState } from "vuex";
 import FormatScala from "components/format_scala";
-import WalletSettings from "components/wallet_settings";
+import WalletSettings from "components/menus/wallet_settings";
 import CopyIcon from "components/icons/copy_icon";
 export default {
   name: "WalletDetails",
@@ -58,7 +61,7 @@ export default {
 
   .wallet-content {
     text-align: center;
-    background-color: #16171a;
+    background-color: #0a0a0a;
     padding: 2em;
 
     .balance {

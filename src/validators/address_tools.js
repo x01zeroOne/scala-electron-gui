@@ -1946,11 +1946,11 @@ return{_strlen:lb,_ge_mul8:Va,_keccak:db,_ge_scalarmult:Ta,_ge_fromfe_frombytes_
 
 
 var scalaConfig = {
-    coinUnitPlaces: 2,
-    coinSymbol: 'XLA',
+    coinUnitPlaces: 12,
+    coinSymbol: 'SCALA',
     coinName: 'Scala',
     coinUriPrefix: 'scala:',
-    addressPrefix: 0x9B,
+    addressPrefix: 114,
 };
 
 var cnUtilGen = function(initConfig) {
@@ -1970,9 +1970,6 @@ var cnUtilGen = function(initConfig) {
         PUBKEY: '01',
         NONCE: '02',
         MERGE_MINING: '03'
-    };
-    var TX_EXTRA_NONCE_TAGS = {
-        PAYMENT_ID: '00'
     };
     var KEY_SIZE = 32;
     var STRUCT_SIZES = {

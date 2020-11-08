@@ -5,7 +5,7 @@ module.exports = function() {
   return {
     // app boot (/src/boot)
     boot: ["i18n", "axios", "vuelidate", "gateway", "timeago"],
-    css: ["app.styl", "~flag-icon-css/css/flag-icon.min.css"],
+    css: ["app.styl"],
     extras: [
       // ctx.theme.mat ? "roboto-font" : null,
       "material-icons" // optional, you are not bound to it
@@ -30,15 +30,6 @@ module.exports = function() {
                     exclude: /(node_modules|quasar)/
                 })
                 */
-      },
-      chainWebpack(chain) {
-        chain.module
-          .rule("images")
-          .use("url-loader")
-          .tap(options => {
-            options.name = "img/[path][name].[ext]";
-            return options;
-          });
       }
     },
     devServer: {
@@ -167,7 +158,8 @@ module.exports = function() {
 
         appId: "com.scala-project.electron-wallet",
         productName: "Scala Electron Wallet",
-        copyright: "Copyright © 2018-2019 Scala Project, 2018 Ryo Currency Project",
+        copyright:
+          "Copyright © 2018-2020 Scala Project, 2018 Ryo Currency Project",
         afterSign: "build/notarize.js",
         artifactName: "scala-electron-wallet-${version}-${os}.${ext}",
         publish: "github",
@@ -201,7 +193,13 @@ module.exports = function() {
           allowToChangeInstallationDirectory: true
         },
 
-        files: ["!build/*.js", "!.env", "!dev-app-update.yml"],
+        files: [
+          "!build/*.js",
+          "!.env",
+          "!dev-app-update.yml",
+          "!downloads/**",
+          "!dist/**"
+        ],
 
         extraResources: ["bin"]
       }

@@ -22,11 +22,14 @@ export default {
     import: "IMPORT",
     importWallet: "IMPORT WALLET | IMPORT WALLETS",
     lns: "SCALA NAME SERVICE",
+    max: "MAX",
+    min: "MIN",
     next: "NEXT",
     openWallet: "OPEN WALLET",
     purchase: "PURCHASE",
     receive: "RECEIVE",
     registerServiceNode: "REGISTER SERVICE NODE",
+    renew: "RENEW",
     rescan: "RESCAN",
     restoreWallet: "RESTORE WALLET",
     save: "SAVE",
@@ -35,7 +38,7 @@ export default {
     selectWalletFile: "SELECT WALLET FILE",
     send: "SEND",
     sendCoins: "SEND COINS",
-    serviceNode: "SERVICE NODE",
+    serviceNode: "SERVICE NODES",
     settings: "SETTINGS",
     showQRCode: "SHOW QR CODE",
     showTxDetails: "SHOW TX DETAILS",
@@ -62,12 +65,14 @@ export default {
     },
     copyAddress: {
       title: "Copy address",
-      message: "There is a payment id associated with this address.\nBe sure to copy the payment id separately."
+      message:
+        "There is a payment id associated with this address.\nBe sure to copy the payment id separately."
     },
     copyPrivateKeys: {
       // Copy {seedWords/viewKey/spendKey}
       title: "Copy {type}",
-      message: "Be careful who you send your private keys to as they control your funds.",
+      message:
+        "Be careful who you send your private keys to as they control your funds.",
       seedWords: "Seed Words",
       viewKey: "View Key",
       spendKey: "Spend Key"
@@ -108,6 +113,11 @@ export default {
       message: "Do you want to purchase the name?",
       ok: "PURCHASE"
     },
+    renew: {
+      title: "Renew name",
+      message: "Do you want to renew the name?",
+      ok: "RENEW"
+    },
     registerServiceNode: {
       title: "Register service node",
       message: "Do you want to register the service node?",
@@ -115,7 +125,8 @@ export default {
     },
     rescan: {
       title: "Rescan wallet",
-      message: "Warning: Some information about previous transactions\nsuch as the recipient's address will be lost.",
+      message:
+        "Warning: Some information about previous transactions\nsuch as the recipient's address will be lost.",
       ok: "RESCAN"
     },
     restart: {
@@ -148,7 +159,9 @@ export default {
       title: "Switch wallet",
       closeMessage: "Are you sure you want to close the current wallet?",
       restartMessage:
-        "The wallet RPC is currently syncing. \nIf you wish to switch wallets then you must restart the application. \nYou will lose your syncing progress and have to rescan the blockchain again."
+        "The wallet RPC is currently syncing. \nIf you wish to switch wallets then you must restart the application. \nYou will lose your syncing progress and have to rescan the blockchain again.",
+      restartWalletMessage:
+        "If you wish to switch wallets then you must restart the application. Are you sure you want to close the current wallet and restart?"
     },
     transactionDetails: {
       title: "Transaction details",
@@ -158,6 +171,11 @@ export default {
       title: "Transfer",
       message: "Do you want to send the transaction?",
       ok: "SEND"
+    },
+    confirmTransaction: {
+      title: "Confirm transaction",
+      sendTo: "Send to",
+      priority: "Priority"
     },
     unlockConfirm: {
       title: "Confirm unlock",
@@ -184,7 +202,6 @@ export default {
     confirmPassword: "CONFIRM PASSWORD",
     daemonLogLevel: "DAEMON LOG LEVEL",
     daemonP2pPort: "DAEMON P2P PORT",
-    daemonZMQPort: "DAEMON ZMQ PORT",
     dataStoragePath: "DATA STORAGE PATH",
     decryptRecord: "DECRYPT RECORD",
     filter: "FILTER",
@@ -196,8 +213,10 @@ export default {
     },
     limitDownloadRate: "LIMIT DOWNLOAD RATE",
     limitUploadRate: "LIMIT UPLOAD RATE",
+    lnsType: "LNS RECORD TYPE",
     localDaemonIP: "LOCAL DAEMON IP",
     localDaemonPort: "LOCAL DAEMON PORT",
+    scalanetFullAddress: "SCALANET FULL ADDRESS",
     maxIncomingPeers: "MAX INCOMING PEERS",
     maxOutgoingPeers: "MAX OUTGOING PEERS",
     message: "MESSAGE",
@@ -242,13 +261,16 @@ export default {
     status: "Status",
     syncing: "SYNCING",
     remote: "Remote",
-    wallet: "Wallet"
+    wallet: "Wallet",
+    updateRequired: "UPDATE REQUIRED"
   },
   menuItems: {
     about: "About",
     changePassword: "Change Password",
     copyAddress: "Copy address",
     copyBackupOwner: "Copy backup owner",
+    copyScalanetAddress: "Copy scalanet address",
+    copyScalanetName: "Copy scalanet name",
     copyName: "Copy name",
     copyOwner: "Copy owner",
     copyQR: "Copy QR code",
@@ -289,13 +311,17 @@ export default {
         imported: "Key images imported"
       },
       lnsRecordUpdated: "LNS Record was successfully updated",
+      scalanetAddressCopied: "Full scalanet address copied",
+      scalanetNameCopied: "Scalanet name copied",
       passwordUpdated: "Password updated",
       namePurchased: "Name successfully purchased",
+      nameRenewed: "Name successfully renewed",
       nameCopied: "Name copied to clipboard",
       ownerCopied: "Owner copied to clipboard",
       qrCopied: "QR code copied to clipboard",
       registerServiceNodeSuccess: "Successfully registered service node",
       sendSuccess: "Transaction successfully sent",
+      serviceNodeInfoFilled: "Service node key and min amount filled",
       sessionIdCopied: "Session ID copied to clipboard",
       signatureCopied: "Signature copied to clipboard",
       stakeSuccess: "Successfully staked",
@@ -303,7 +329,8 @@ export default {
     },
     errors: {
       banningPeer: "Error banning peer",
-      cannotAccessRemoteNode: "Could not access remote node, please try another remote node",
+      cannotAccessRemoteNode:
+        "Could not access remote node, please try another remote node",
       changingPassword: "Error changing password",
       copyWalletFail: "Failed to copy wallet",
       copyingPrivateKeys: "Error copying private keys",
@@ -326,8 +353,10 @@ export default {
       invalidAmount: "Amount not valid",
       invalidBackupOwner: "Backup owner address not valid",
       invalidNameLength: "Name must be between 1 and 64 characters long",
-      invalidNameFormat: "Name may only contain alphanumerics, hyphens and underscore",
-      invalidNameHypenNotAllowed: "Name may only begin or end with alphanumerics or an underscore",
+      invalidNameFormat:
+        "Name may only contain alphanumerics, hyphens and underscore",
+      invalidNameHypenNotAllowed:
+        "Name may only begin or end with alphanumerics or an underscore",
       invalidOldPassword: "Invalid old password",
       invalidOwner: "Owner address not valid",
       invalidPassword: "Invalid password",
@@ -337,7 +366,8 @@ export default {
       invalidRestoreDate: "Invalid restore date",
       invalidRestoreHeight: "Invalid restore height",
       invalidSeedLength: "Invalid seed word length",
-      invalidServiceNodeCommand: "Please enter the service node registration command",
+      invalidServiceNodeCommand:
+        "Please enter the service node registration command",
       invalidServiceNodeKey: "Service node key not valid",
       invalidSessionId: "Session ID not valid",
       invalidWalletPath: "Invalid wallet path",
@@ -372,10 +402,13 @@ export default {
     lnsName: "The name to purchase via Scala Name Service",
     lnsBackupOwner: "The wallet address of the backup owner",
     lnsDecryptName: "A LNS name that belongs to you",
+    scalanetFullAddress:
+      "Full scalanet address to map LNS name to (without .scala)",
     mnemonicSeed: "25 (or 24) word mnemonic seed",
     pasteTransactionId: "Paste transaction ID",
     pasteTransactionProof: "Paste transaction proof",
-    proveOptionalMessage: "Optional message against which the signature is signed",
+    proveOptionalMessage:
+      "Optional message against which the signature is signed",
     recipientWalletAddress: "Recipient's wallet address",
     selectAFile: "Please select a file",
     sessionId: "The Session ID to link to Scala Name Service",
@@ -396,6 +429,7 @@ export default {
       subAddressIndex: "Index {index}"
     },
     advancedOptions: "Advanced Options",
+    awaitingConfirmation: "Awaiting confirmation",
     bannedPeers: {
       title: "Banned peers (bans will cleared if wallet is restarted)",
       bannedUntil: "Banned until {time}"
@@ -432,15 +466,27 @@ export default {
       },
       remote: {
         title: "Remote Daemon Only",
-        description: "Less security, wallet will connect to a remote node to make all transactions."
+        description:
+          "Less security, wallet will connect to a remote node to make all transactions."
       }
     },
     destinationUnknown: "Destination Unknown",
     editAddressBookEntry: "Edit address book entry",
+    expirationHeight: "Expiration height",
+    lns: {
+      sessionID: "Session ID",
+      scalanetName1Year: "Scalanet Name 1 year",
+      scalanetNameXYears: "Scalanet Name {years} years",
+      prices: "LNS Prices:"
+    },
+    lnsPurchaseDescription:
+      "Purchase or update an LNS record. If you purchase a name, it may take a minute or two for it to show up in the list.",
     lnsDescription:
-      "Purchase or update a name for a Session ID. If you purchase a name, it may take a minute or two for it to show up in the list.",
+      "Here you can find all the LNS names owned by this wallet. Decrypting a record you own will return the name and value of that LNS record.",
     loadingSettings: "Loading settings",
     scalaBalance: "Balance",
+    scalanetNameDescription:
+      "Purchase or update a name on Scalanet. If you purchase a name it may take a minute or two for it to show up in the list. To learn more about scalanet visit: ",
     scalaUnlockedBalance: "Unlocked balance",
     scalaUnlockedShort: "Unlocked",
     me: "Me",
@@ -452,32 +498,45 @@ export default {
     peerList: "Peer list",
     priorityOptions: {
       automatic: "Automatic",
-      slow: "Normal",
+      slow: "Slow",
       normal: "Normal",
       fast: "Fast",
       fastest: "Fastest",
       blink: "Blink"
     },
+
     proveTransactionDescription:
       "Generate a proof of your incoming/outgoing payment by supplying the transaction ID, the recipient address and an optional message.\nFor the case of outgoing payments, you can get a 'Spend Proof' that proves the authorship of a transaction. In this case, you don't need to specify the recipient address.",
     readingWalletList: "Reading wallet list",
-    recentIncomingTransactionsToAddress: "Recent incoming transactions to this address",
+    recentIncomingTransactionsToAddress:
+      "Recent incoming transactions to this address",
     recentTransactionsWithAddress: "Recent transactions with this address",
-    rescanModalDescription: "Select full rescan or rescan of spent outputs only.",
+    rescanModalDescription:
+      "Select full rescan or rescan of spent outputs only.",
     saveSeedWarning: "Please copy and save these in a secure location!",
     saveToAddressBook: "Save to address book",
     seedWords: "Seed words",
     selectLanguage: "Select language",
+    serviceNodeContributionDescription:
+      "Staking contributes to the safety of the Scala network. For your contribution, you earn SCALA. Once staked, you will have to wait either 15 or 30 days to have your Scala unlocked, depending on if a stake was unlocked by a contributor or the node was deregistered. To learn more about staking, please visit the",
     serviceNodeRegistrationDescription:
       'Enter the {registerCommand} command produced by the daemon that is registering to become a Service Node using the "{prepareCommand}" command',
+    serviceNodeStartStakingDescription:
+      "To start staking, please visit the Staking tab",
+    noServiceNodesCurrentlyAvailable:
+      "There are currently no service nodes available for contribution",
     serviceNodeDetails: {
       contributors: "Contributors",
       lastRewardBlockHeight: "Last reward block height",
       lastUptimeProof: "Last uptime proof",
+      maxContribution: "Max contribution",
+      minContribution: "Min contribution",
       operatorFee: "Operator Fee",
       registrationHeight: "Registration height",
       unlockHeight: "Unlock height",
+      reserved: "Reserved",
       serviceNodeKey: "Service Node Key",
+      snKey: "SN Key",
       stakingRequirement: "Staking requirement",
       totalContributed: "Total contributed"
     },
@@ -517,7 +576,9 @@ export default {
     userNotUsedAddress: "You have not used this address",
     userUsedAddress: "You have used this address",
     viewKey: "View key",
-    viewOnlyMode: "View only mode. Please load full wallet in order to send coins."
+    viewOnlyMode:
+      "View only mode. Please load full wallet in order to send coins.",
+    website: "website"
   },
   titles: {
     addressBook: "Address book",
@@ -526,16 +587,25 @@ export default {
       checkTransaction: "CHECK TRANSACTION",
       prove: "PROVE"
     },
+    availableForContribution: "Service nodes available for contribution",
     changePassword: "Change password",
     configure: "Configure",
     currentlyStakedNodes: "Currently staked nodes",
     lnsRecordDetails: "LNS record details",
+    lnsSessionRecords: "Session records",
+    lnsScalanetRecords: "Scalanet records",
     privateKeys: "Private keys",
     rescanWallet: "Rescan wallet",
+    lns: {
+      purchase: "PURCHASE",
+      myLns: "MY LNS"
+    },
     serviceNode: {
       registration: "REGISTRATION",
-      staking: "STAKING"
+      staking: "STAKING",
+      myStakes: "MY STAKES"
     },
+
     serviceNodeDetails: "Service node details",
     settings: {
       title: "Settings",

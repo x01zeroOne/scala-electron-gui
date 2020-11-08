@@ -1,7 +1,10 @@
 <template>
   <q-page class="create-wallet">
     <div class="fields q-mx-md q-mt-md">
-      <ScalaField :label="$t('fieldLabels.walletName')" :error="$v.wallet.name.$error">
+      <ScalaField
+        :label="$t('fieldLabels.walletName')"
+        :error="$v.wallet.name.$error"
+      >
         <q-input
           v-model="wallet.name"
           :dark="theme == 'dark'"
@@ -14,7 +17,15 @@
       </ScalaField>
 
       <ScalaField :label="$t('fieldLabels.seedLanguage')">
-        <q-select v-model="wallet.language" :options="languageOptions" :dark="theme == 'dark'" borderless dense />
+        <q-select
+          v-model="wallet.language"
+          :options="languageOptions"
+          :dark="theme == 'dark'"
+          borderless
+          dense
+          emit-value
+          map-options
+        />
       </ScalaField>
 
       <ScalaField :label="$t('fieldLabels.password')" optional>
@@ -40,7 +51,12 @@
         />
       </ScalaField>
 
-      <q-btn class="submit-button" color="primary" :label="$t('buttons.createWallet')" @click="create" />
+      <q-btn
+        class="submit-button"
+        color="primary"
+        :label="$t('buttons.createWallet')"
+        @click="create"
+      />
     </div>
   </q-page>
 </template>
@@ -54,28 +70,28 @@ export default {
     ScalaField
   },
   data() {
+    const languageOptions = [
+      { label: "English", value: "English" },
+      { label: "Deutsch", value: "Deutsch" },
+      { label: "Español", value: "Español" },
+      { label: "Français", value: "Français" },
+      { label: "Italiano", value: "Italiano" },
+      { label: "Nederlands", value: "Nederlands" },
+      { label: "Português", value: "Português" },
+      { label: "Русский", value: "Русский" },
+      { label: "日本語", value: "日本語" },
+      { label: "简体中文 (中国)", value: "简体中文 (中国)" },
+      { label: "Esperanto", value: "Esperanto" },
+      { label: "Lojban", value: "Lojban" }
+    ];
     return {
       wallet: {
         name: "",
-        language: "English",
+        language: languageOptions[0].value,
         password: "",
         password_confirm: ""
       },
-
-      languageOptions: [
-        { label: "English", value: "English" },
-        { label: "Deutsch", value: "Deutsch" },
-        { label: "Español", value: "Español" },
-        { label: "Français", value: "Français" },
-        { label: "Italiano", value: "Italiano" },
-        { label: "Nederlands", value: "Nederlands" },
-        { label: "Português", value: "Português" },
-        { label: "Русский", value: "Русский" },
-        { label: "日本語", value: "日本語" },
-        { label: "简体中文 (中国)", value: "简体中文 (中国)" },
-        { label: "Esperanto", value: "Esperanto" },
-        { label: "Lojban", value: "Lojban" }
-      ]
+      languageOptions
     };
   },
   computed: mapState({

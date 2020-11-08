@@ -15,8 +15,19 @@
         />
       </ScalaField>
 
-      <ScalaField class="col-2" :label="$t('fieldLabels.filterTransactionType')">
-        <q-select v-model="tx_type" :dark="theme == 'dark'" :options="tx_type_options" borderless dense />
+      <ScalaField
+        class="col-2"
+        :label="$t('fieldLabels.filterTransactionType')"
+      >
+        <q-select
+          v-model="tx_type"
+          :dark="theme == 'dark'"
+          :options="tx_type_options"
+          borderless
+          dense
+          emit-value
+          map-options
+        />
       </ScalaField>
     </div>
     <TxList :type="tx_type" :filter="tx_filter" />
@@ -56,6 +67,18 @@ export default {
         {
           label: this.$t("strings.transactions.types.miner"),
           value: "miner"
+        },
+        {
+          label: this.$t("strings.transactions.types.serviceNode"),
+          value: "snode"
+        },
+        {
+          label: this.$t("strings.transactions.types.governance"),
+          value: "gov"
+        },
+        {
+          label: this.$t("strings.transactions.types.stake"),
+          value: "stake"
         },
         {
           label: this.$t("strings.transactions.types.failed"),

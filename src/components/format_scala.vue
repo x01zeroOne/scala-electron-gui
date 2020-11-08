@@ -23,9 +23,7 @@ export default {
   },
   computed: {
     value() {
-      let value = this.amount / 1e2;
-      if (this.round) value = value.toFixed(3);
-      return this.rawValue ? value : value.toLocaleString();
+      return this.amount / 1e2;
     }
   }
 };

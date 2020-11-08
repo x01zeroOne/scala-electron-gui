@@ -8,10 +8,15 @@
 
     <template v-else>
       <q-infinite-scroll ref="scroller" @load="loadMore">
-        <q-list link no-border :dark="theme == 'dark'" class="scala-list tx-list">
+        <q-list
+          link
+          no-border
+          :dark="theme == 'dark'"
+          class="scala-list tx-list"
+        >
           <q-item
-            v-for="tx in tx_list_paged"
-            :key="`${tx.txid}-${tx.type}`"
+            v-for="(tx, i) in tx_list_paged"
+            :key="`${tx.txid}-${tx.type}-${i}`"
             class="scala-list-item transaction"
             :class="'tx-' + tx.type"
             @click.native="details(tx)"
@@ -21,38 +26,26 @@
             </q-item-section>
             <q-item-label class="main">
               <q-item-label class="amount">
-                <FormatScala :amount="tx.amount" />
+                <FormatScala :amount="tx.amount || 0" />
               </q-item-label>
               <q-item-label caption>{{ tx.txid }}</q-item-label>
             </q-item-label>
             <q-item-section class="meta">
               <q-item-label>
-                <timeago :datetime="tx.timestamp * 1000" :auto-update="60" :locale="$i18n.locale" />
+                <timeago
+                  :datetime="tx.timestamp * 1000"
+                  :auto-update="60"
+                  :locale="$i18n.locale"
+                />
               </q-item-label>
               <q-item-label caption>{{ formatHeight(tx) }}</q-item-label>
             </q-item-section>
-
-            <q-menu context-menu>
-              <q-list separator style="min-width: 150px; max-height: 300px;">
-                <q-item v-close-popup clickable @click.native="details(tx)">
-                  <q-item-section>
-                    {{ $t("menuItems.showDetails") }}
-                  </q-item-section>
-                </q-item>
-
-                <q-item v-close-popup clickable @click.native="copyTxid(tx.txid, $event)">
-                  <q-item-section>
-                    {{ $t("menuItems.copyTransactionId") }}
-                  </q-item-section>
-                </q-item>
-
-                <q-item v-close-popup clickable @click.native="openExplorer(tx.txid)">
-                  <q-item-section>
-                    {{ $t("menuItems.viewOnExplorer") }}
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
+            <ContextMenu
+              :menu-items="menuItems"
+              @copyTxId="copyTxId(tx.txid)"
+              @showDetails="details(tx)"
+              @openExplorer="openExplorer(tx.txid)"
+            />
           </q-item>
           <QSpinnerDots slot="message" :size="40"></QSpinnerDots>
         </q-list>
@@ -70,6 +63,7 @@ import { QSpinnerDots } from "quasar";
 import TxDetails from "components/tx_details";
 import FormatScala from "components/format_scala";
 import { i18n } from "boot/i18n";
+import ContextMenu from "components/menus/contextmenu";
 
 export default {
   name: "TxList",
@@ -87,6 +81,12 @@ export default {
           return i18n.t("strings.transactions.types.pending");
         case "miner":
           return i18n.t("strings.transactions.types.miner");
+        case "snode":
+          return i18n.t("strings.transactions.types.serviceNode");
+        case "gov":
+          return i18n.t("strings.transactions.types.governance");
+        case "stake":
+          return i18n.t("strings.transactions.types.stake");
         default:
           return "-";
       }
@@ -95,7 +95,8 @@ export default {
   components: {
     QSpinnerDots,
     TxDetails,
-    FormatScala
+    FormatScala,
+    ContextMenu
   },
   props: {
     limit: {
@@ -125,10 +126,16 @@ export default {
     }
   },
   data() {
+    const menuItems = [
+      { action: "showDetails", i18n: "menuItems.showDetails" },
+      { action: "copyTxId", i18n: "menuItems.copyTransactionId" },
+      { action: "openExplorer", i18n: "menuItems.viewOnExplorer" }
+    ];
     return {
       page: 0,
       tx_list_filtered: [],
-      tx_list_paged: []
+      tx_list_paged: [],
+      menuItems
     };
   },
   computed: mapState({
@@ -190,12 +197,11 @@ export default {
   },
   methods: {
     filterTxList() {
-      const all_in = ["in", "pool", "miner"];
-      const all_out = ["out", "pending"];
+      const all_in = ["in", "pool", "miner", "snode", "gov"];
+      const all_out = ["out", "pending", "stake"];
       const all_pending = ["pending", "pool"];
       this.tx_list_filtered = this.tx_list.filter(tx => {
         let valid = true;
-
         if (this.type === "all_in" && !all_in.includes(tx.type)) {
           return false;
         }
@@ -208,11 +214,10 @@ export default {
           return false;
         }
 
-        console.log(this.type);
-        //if (!this.type.startsWith("all") && this.type !== tx.type) {
-        //  valid = false;
-        //  return valid;
-        //}
+        if (!this.type.startsWith("all") && this.type !== tx.type) {
+          valid = false;
+          return valid;
+        }
 
         if (this.filter !== "") {
           valid = this.txContains(tx, this.filter);
@@ -231,7 +236,9 @@ export default {
         }
 
         if (this.toIncomingAddressIndex !== -1) {
-          valid = tx.hasOwnProperty("subaddr_index") && tx.subaddr_index.minor == this.toIncomingAddressIndex;
+          valid =
+            tx.hasOwnProperty("subaddr_index") &&
+            tx.subaddr_index.minor == this.toIncomingAddressIndex;
           return valid;
         }
 
@@ -261,11 +268,17 @@ export default {
       return this.address_book.find(book => book.address === address);
     },
     pageTxList() {
-      this.tx_list_paged = this.tx_list_filtered.slice(0, this.limit !== -1 ? this.limit : this.page * 24 + 24);
+      this.tx_list_paged = this.tx_list_filtered.slice(
+        0,
+        this.limit !== -1 ? this.limit : this.page * 24 + 24
+      );
     },
     loadMore: function(index, done) {
       this.page = index;
-      if (this.limit !== -1 || this.tx_list_filtered.length < this.page * 24 + 24) {
+      if (
+        this.limit !== -1 ||
+        this.tx_list_filtered.length < this.page * 24 + 24
+      ) {
         this.$refs.scroller.stop();
       }
       this.pageTxList();
@@ -283,17 +296,17 @@ export default {
       let confirms = Math.max(0, this.wallet_height - height);
       if (height == 0) return this.$t("strings.transactions.types.pending");
       if (confirms < Math.max(10, tx.unlock_time - height))
-        return this.$t("strings.blockHeight") + `: ${height} (${confirms} confirm${confirms == 1 ? "" : "s"})`;
-      else return this.$t("strings.blockHeight") + `: ${height} (${this.$t("strings.transactionConfirmed")})`;
+        return (
+          this.$t("strings.blockHeight") +
+          `: ${height} (${confirms} confirm${confirms == 1 ? "" : "s"})`
+        );
+      else
+        return (
+          this.$t("strings.blockHeight") +
+          `: ${height} (${this.$t("strings.transactionConfirmed")})`
+        );
     },
-    copyTxid(txid, event) {
-      event.stopPropagation();
-      for (let i = 0; i < event.path.length; i++) {
-        if (event.path[i].tagName == "BUTTON") {
-          event.path[i].blur();
-          break;
-        }
-      }
+    copyTxId(txid) {
       clipboard.writeText(txid);
       this.$q.notify({
         type: "positive",

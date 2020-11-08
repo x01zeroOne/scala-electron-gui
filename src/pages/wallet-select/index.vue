@@ -1,15 +1,26 @@
 <template>
   <q-page>
-    <q-list class="wallet-list" link no-border :dark="theme == 'dark'">
+    <q-list class="wallet-list" no-border :dark="theme == 'dark'">
       <template v-if="wallets.list.length">
         <div class="header row justify-between items-center">
           <div class="header-title">
             {{ $t("titles.yourWallets") }}
           </div>
-          <q-btn v-if="wallets.list.length" class="add" icon="add" size="md" color="primary">
+          <q-btn
+            v-if="wallets.list.length"
+            class="add"
+            icon="add"
+            size="md"
+            color="primary"
+          >
             <q-menu class="header-popover" :content-class="'header-popover'">
               <q-list separator>
-                <q-item v-for="action in actions" :key="action.name" clickable @click.native="action.handler">
+                <q-item
+                  v-for="action in actions"
+                  :key="action.name"
+                  clickable
+                  @click.native="action.handler"
+                >
                   <q-item-section>
                     {{ action.name }}
                   </q-item-section>
@@ -35,7 +46,12 @@
                 class="si-glyph si-glyph-wallet"
               >
                 <defs class="si-glyph-fill"></defs>
-                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                <g
+                  stroke="none"
+                  stroke-width="1"
+                  fill="none"
+                  fill-rule="evenodd"
+                >
                   <g transform="translate(1.000000, 0.000000)" fill="#434343">
                     <path
                       d="M7.988,10.635 L7.988,8.327 C7.988,7.578 8.561,6.969 9.267,6.969 L13.964,6.969 L13.964,5.531 C13.964,4.849 13.56,4.279 13.007,4.093 L13.007,4.094 L11.356,4.08 L11.336,4.022 L3.925,4.022 L3.784,4.07 L1.17,4.068 L1.165,4.047 C0.529,4.167 0.017,4.743 0.017,5.484 L0.017,13.437 C0.017,14.269 0.665,14.992 1.408,14.992 L12.622,14.992 C13.365,14.992 13.965,14.316 13.965,13.484 L13.965,12.031 L9.268,12.031 C8.562,12.031 7.988,11.384 7.988,10.635 L7.988,10.635 Z"
@@ -55,29 +71,27 @@
             </q-icon>
           </q-item-section>
           <q-item-section>
-            <q-item-label class="wallet-name" caption>{{ wallet.name }}</q-item-label>
-            <q-item-label class="monospace ellipsis" caption>{{ wallet.address }}</q-item-label>
+            <q-item-label class="wallet-name" caption>{{
+              wallet.name
+            }}</q-item-label>
+            <q-item-label class="monospace ellipsis" caption>{{
+              wallet.address
+            }}</q-item-label>
           </q-item-section>
-          <q-menu context-menu>
-            <q-list separator class="context-menu">
-              <q-item v-close-popup clickable @click.native="openWallet(wallet)">
-                <q-item-section>
-                  {{ $t("menuItems.openWallet") }}
-                </q-item-section>
-              </q-item>
-
-              <q-item v-close-popup clickable @click.native="copyAddress(wallet.address, $event)">
-                <q-item-section>
-                  {{ $t("menuItems.copyAddress") }}
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
+          <ContextMenu
+            :menu-items="menuItems"
+            @openWallet="openWallet(wallet)"
+            @copyAddress="copyAddress(wallet.address)"
+          />
         </q-item>
         <q-separator />
       </template>
       <template v-else>
-        <q-item v-for="action in actions" :key="action.name" @click.native="action.handler">
+        <q-item
+          v-for="action in actions"
+          :key="action.name"
+          @click.native="action.handler"
+        >
           <q-item-section>
             {{ action.name }}
           </q-item-section>
@@ -90,8 +104,21 @@
 <script>
 const { clipboard } = require("electron");
 import { mapState } from "vuex";
+import ContextMenu from "components/menus/contextmenu";
 
 export default {
+  components: {
+    ContextMenu
+  },
+  data() {
+    const menuItems = [
+      { action: "openWallet", i18n: "menuItems.openWallet" },
+      { action: "copyAddress", i18n: "menuItems.copyAddress" }
+    ];
+    return {
+      menuItems
+    };
+  },
   computed: mapState({
     theme: state => state.gateway.app.config.appearance.theme,
     wallets: state => state.gateway.wallets,
@@ -161,7 +188,6 @@ export default {
   methods: {
     openWallet(wallet) {
       if (wallet.password_protected !== false) {
-        // TODO: Password box into one component, it's duplicated
         this.$q
           .dialog({
             title: this.$t("dialog.password.title"),
@@ -220,14 +246,7 @@ export default {
     importLegacyWallet() {
       this.$router.replace({ path: "wallet-select/import-legacy" });
     },
-    copyAddress(address, event) {
-      event.stopPropagation();
-      for (let i = 0; i < event.path.length; i++) {
-        if (event.path[i].tagName == "BUTTON") {
-          event.path[i].blur();
-          break;
-        }
-      }
+    copyAddress(address) {
       clipboard.writeText(address);
       this.$q.notify({
         type: "positive",
@@ -247,7 +266,7 @@ export default {
 
   .header {
     margin: 0 16px;
-    margin-bottom: 8px;
+    padding: 6px;
     min-height: 36px;
 
     .header-title {

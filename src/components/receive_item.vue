@@ -3,18 +3,32 @@
     <q-item>
       <q-item-section class="flex">
         <q-item-label class="ellipsis">{{ address.address }}</q-item-label>
-        <q-item-label v-if="sublabel" caption class="non-selectable">{{ sublabel }}</q-item-label>
+        <q-item-label v-if="sublabel" caption class="non-selectable">{{
+          sublabel
+        }}</q-item-label>
       </q-item-section>
       <q-item-section side>
         <div class="row">
-          <q-btn style="margin-right: 4px;" flat padding="xs" size="md" @click="showQR(address.address, $event)">
+          <q-btn
+            style="margin-right: 4px;"
+            flat
+            padding="xs"
+            size="md"
+            @click="showQR(address.address, $event)"
+          >
             <!-- height of 24 makes it equal size as copy -->
             <img :src="qrImage" height="24" />
             <q-tooltip anchor="bottom right" self="top right" :offset="[0, 5]">
               {{ $t("menuItems.showQRCode") }}
             </q-tooltip>
           </q-btn>
-          <q-btn flat padding="xs" size="md" icon="file_copy" @click="copyAddress(address.address, $event)">
+          <q-btn
+            flat
+            padding="xs"
+            size="md"
+            icon="file_copy"
+            @click="copyAddress(address.address, $event)"
+          >
             <q-tooltip anchor="bottom right" self="top right" :offset="[0, 5]">
               {{ $t("menuItems.copyAddress") }}
             </q-tooltip>
@@ -35,38 +49,37 @@
             <span class="col-sm-4">
               <span>{{ $t("strings.scalaUnlockedBalance") }}</span>
               <br />
-              <span class="value">{{ address.unlocked_balance | currency }}</span>
+              <span class="value">{{
+                address.unlocked_balance | currency
+              }}</span>
             </span>
             <span class="col-sm-4">
               <span>{{ $t("strings.unspentOutputs") }}</span>
               <br />
-              <span class="value">{{ address.num_unspent_outputs | toString }}</span>
+              <span class="value">{{
+                address.num_unspent_outputs | toString
+              }}</span>
             </span>
           </div>
         </q-item-section>
       </q-item>
     </template>
-    <q-menu context-menu>
-      <q-list separator class="context-menu">
-        <q-item v-close-popup clickable @click.native="details(address)">
-          <q-item-section>
-            {{ $t("menuItems.showDetails") }}
-          </q-item-section>
-        </q-item>
-
-        <q-item v-close-popup clickable @click.native="copyAddress(address.address, $event)">
-          <q-item-section>
-            {{ $t("menuItems.copyAddress") }}
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-menu>
+    <ContextMenu
+      :menu-items="menuItems"
+      @showDetails="details(address)"
+      @copyAddress="copyAddress(address.address, $event)"
+    />
   </q-list>
 </template>
 
 <script>
+import ContextMenu from "components/menus/contextmenu";
+
 export default {
   name: "ReceiveItem",
+  components: {
+    ContextMenu
+  },
   filters: {
     toString: function(value) {
       if (typeof value !== "number") return "N/A";
@@ -111,6 +124,15 @@ export default {
       required: false,
       default: false
     }
+  },
+  data() {
+    const menuItems = [
+      { action: "showDetails", i18n: "menuItems.showDetails" },
+      { action: "copyAddress", i18n: "menuItems.copyAddress" }
+    ];
+    return {
+      menuItems
+    };
   },
   computed: {
     qrImage() {

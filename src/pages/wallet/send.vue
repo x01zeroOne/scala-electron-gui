@@ -10,7 +10,10 @@
         <div class="row gutter-md">
           <!-- Amount -->
           <div class="col-6 amount">
-            <ScalaField :label="$t('fieldLabels.amount')" :error="$v.newTx.amount.$error">
+            <ScalaField
+              :label="$t('fieldLabels.amount')"
+              :error="$v.newTx.amount.$error"
+            >
               <q-input
                 v-model="newTx.amount"
                 :dark="theme == 'dark'"
@@ -50,7 +53,10 @@
 
         <!-- Address -->
         <div class="col q-mt-sm">
-          <ScalaField :label="$t('fieldLabels.address')" :error="$v.newTx.address.$error">
+          <ScalaField
+            :label="$t('fieldLabels.address')"
+            :error="$v.newTx.address.$error"
+          >
             <q-input
               v-model.trim="newTx.address"
               :dark="theme == 'dark'"
@@ -59,27 +65,13 @@
               dense
               @blur="$v.newTx.address.$touch"
             />
-            <q-btn color="secondary" :text-color="theme == 'dark' ? 'white' : 'dark'" to="addressbook">
+            <q-btn
+              color="secondary"
+              :text-color="theme == 'dark' ? 'white' : 'dark'"
+              to="addressbook"
+            >
               {{ $t("buttons.contacts") }}
             </q-btn>
-          </ScalaField>
-        </div>
-
-        <!-- Payment ID -->
-        <div class="col q-mt-sm">
-          <ScalaField :label="$t('fieldLabels.paymentId')" :error="$v.newTx.payment_id.$error" optional>
-            <q-input
-              v-model.trim="newTx.payment_id"
-              :dark="theme == 'dark'"
-              :placeholder="
-                $t('placeholders.hexCharacters', {
-                  count: '16 or 64'
-                })
-              "
-              borderless
-              dense
-              @blur="$v.newTx.payment_id.$touch"
-            />
           </ScalaField>
         </div>
 
@@ -138,7 +130,15 @@
           />
         </div>
       </div>
-
+      <ConfirmTransactionDialog
+        :show="confirmTransaction"
+        :amount="confirmFields.totalAmount"
+        :is-blink="confirmFields.isBlink"
+        :send-to="confirmFields.destination"
+        :fee="confirmFields.totalFees"
+        :on-confirm-transaction="onConfirmTransaction"
+        :on-cancel-transaction="onCancelTransaction"
+      />
       <q-inner-loading :showing="tx_status.sending" :dark="theme == 'dark'">
         <q-spinner color="primary" size="30" />
       </q-inner-loading>
@@ -149,16 +149,22 @@
 <script>
 import { mapState } from "vuex";
 import { required, decimal } from "vuelidate/lib/validators";
-import { payment_id, address, greater_than_zero } from "src/validators/common";
+import { address, greater_than_zero } from "src/validators/common";
 import ScalaField from "components/scala_field";
 import WalletPassword from "src/mixins/wallet_password";
+import ConfirmDialogMixin from "src/mixins/confirm_dialog_mixin";
+import ConfirmTransactionDialog from "components/confirm_tx_dialog";
 const objectAssignDeep = require("object-assign-deep");
+
+// the case for doing nothing on a tx_status update
+const DO_NOTHING = 10;
 
 export default {
   components: {
-    ScalaField
+    ScalaField,
+    ConfirmTransactionDialog
   },
-  mixins: [WalletPassword],
+  mixins: [WalletPassword, ConfirmDialogMixin],
   data() {
     let priorityOptions = [
       { label: this.$t("strings.priorityOptions.slow"), value: 1 } // Slow
@@ -167,15 +173,20 @@ export default {
       newTx: {
         amount: 0,
         address: "",
-        payment_id: "",
-        priority: 0,
+        priority: priorityOptions[0].value,
         address_book: {
           save: false,
           name: "",
           description: ""
         }
       },
-      priorityOptions: priorityOptions
+      priorityOptions: priorityOptions,
+      confirmFields: {
+        isBlink: false,
+        totalAmount: -1,
+        destination: "",
+        totalFees: 0
+      }
     };
   },
   computed: mapState({
@@ -193,7 +204,8 @@ export default {
       const wallet = state.gateway.wallet.info;
       const prefix = (wallet && wallet.address && wallet.address[0]) || "L";
       return `${prefix}..`;
-    }
+    },
+    confirmTransaction: state => state.gateway.tx_status.code === 1
   }),
   validations: {
     newTx: {
@@ -213,8 +225,7 @@ export default {
               .catch(() => resolve(false));
           });
         }
-      },
-      payment_id: { payment_id }
+      }
     }
   },
   watch: {
@@ -223,6 +234,13 @@ export default {
         if (val.code == old.code) return;
         const { code, message } = val;
         switch (code) {
+          // the "nothing", so we can update state without doing anything
+          // in particular
+          case DO_NOTHING:
+            break;
+          case 1:
+            this.buildDialogFieldsSend(val);
+            break;
           case 0:
             this.$q.notify({
               type: "positive",
@@ -233,8 +251,7 @@ export default {
             this.newTx = {
               amount: 0,
               address: "",
-              payment_id: "",
-              priority: 0,
+              priority: this.priorityOptions[0].value,
               address_book: {
                 save: false,
                 name: "",
@@ -261,18 +278,64 @@ export default {
     }
   },
   mounted() {
-    if (this.$route.path == "/wallet/send" && this.$route.query.hasOwnProperty("address")) {
+    if (
+      this.$route.path == "/wallet/send" &&
+      this.$route.query.hasOwnProperty("address")
+    ) {
       this.autoFill(this.$route.query);
     }
   },
   methods: {
     autoFill: function(info) {
       this.newTx.address = info.address;
-      this.newTx.payment_id = info.payment_id;
+    },
+    buildDialogFieldsSend(txData) {
+      // build using mixin method
+      this.confirmFields = this.buildDialogFields(txData);
+    },
+    onConfirmTransaction() {
+      // put the loading spinner up
+      this.$store.commit("gateway/set_tx_status", {
+        code: DO_NOTHING,
+        message: "Getting transaction information",
+        sending: true
+      });
+      const { name, description, save } = this.newTx.address_book;
+      const addressSave = {
+        address: this.newTx.address,
+        address_book: {
+          description,
+          name,
+          save
+        }
+      };
+
+      const note = this.newTx.note;
+      const isBlink = this.confirmFields.isBlink;
+
+      const relayTxData = {
+        isBlink,
+        addressSave,
+        note,
+        // you may be sending all (which calls sweep_all RPC), but this refers to
+        // if the relay is coming from "sweep all" on the SN tab
+        isSweepAll: false
+      };
+
+      // Commit the transaction
+      this.$gateway.send("wallet", "relay_tx", relayTxData);
+    },
+    onCancelTransaction() {
+      this.$store.commit("gateway/set_tx_status", {
+        code: DO_NOTHING,
+        message: "Cancel the transaction from confirm dialog",
+        sending: false
+      });
     },
 
     async send() {
       this.$v.newTx.$touch();
+      console.log(this.newTx.amount);
 
       if (this.newTx.amount < 0) {
         this.$q.notify({
@@ -313,15 +376,7 @@ export default {
         return;
       }
 
-      if (this.$v.newTx.payment_id.$error) {
-        this.$q.notify({
-          type: "negative",
-          timeout: 1000,
-          message: this.$t("notification.errors.invalidPaymentId")
-        });
-        return;
-      }
-
+      // must wait for the dialog to be returned
       let passwordDialog = await this.showPasswordConfirmation({
         title: this.$t("dialog.transfer.title"),
         noPasswordMessage: this.$t("dialog.transfer.message"),
@@ -336,13 +391,14 @@ export default {
         .onOk(password => {
           password = password || "";
           this.$store.commit("gateway/set_tx_status", {
-            code: 1,
-            message: "Sending transaction",
+            code: DO_NOTHING,
+            message: "Getting transaction information",
             sending: true
           });
           const newTx = objectAssignDeep.noMutate(this.newTx, {
             password
           });
+
           this.$gateway.send("wallet", "transfer", newTx);
         })
         .onDismiss(() => {})

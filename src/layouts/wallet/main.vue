@@ -10,7 +10,6 @@
     </q-header>
 
     <q-page-container>
-      <!-- <AddressHeader :address="info.address" :title="info.name" /> -->
       <WalletDetails />
 
       <div class="app-content">
@@ -20,7 +19,7 @@
           </router-link>
           <router-link to="/wallet/send">
             <q-btn
-              class="large-btn-send"
+              class="large-btn"
               :label="$t('buttons.send')"
               size="md"
               icon-right="arrow_right_alt"
@@ -28,10 +27,40 @@
             />
           </router-link>
           <router-link to="/wallet/receive">
-            <q-btn class="large-btn-rec" :label="$t('buttons.receive')" size="md" icon-right="save_alt" align="between" />
+            <q-btn
+              class="large-btn"
+              :label="$t('buttons.receive')"
+              size="md"
+              icon-right="save_alt"
+              align="between"
+            />
+          </router-link>
+          <router-link to="/wallet/servicenode">
+            <q-btn
+              class="large-btn"
+              :label="$t('buttons.serviceNode')"
+              size="md"
+              icon-right="router"
+              align="between"
+            />
+          </router-link>
+          <router-link to="/wallet/lns">
+            <q-btn
+              class="large-btn"
+              :label="$t('buttons.lns')"
+              size="md"
+              icon-right="text_fields"
+              align="between"
+            />
           </router-link>
           <router-link to="/wallet/advanced">
-            <q-btn class="large-btn" :label="$t('buttons.advanced')" size="md" icon-right="tune" align="between" />
+            <q-btn
+              class="large-btn"
+              :label="$t('buttons.advanced')"
+              size="md"
+              icon-right="tune"
+              align="between"
+            />
           </router-link>
           <router-link to="/wallet/addressbook" class="address">
             <q-btn class="single-icon" size="md" icon="person" />
@@ -53,18 +82,13 @@ import { openURL } from "quasar";
 import { mapState } from "vuex";
 import WalletDetails from "components/wallet_details";
 import StatusFooter from "components/footer";
-import MainMenu from "components/mainmenu";
+import MainMenu from "components/menus/mainmenu";
 export default {
   name: "LayoutDefault",
   components: {
     StatusFooter,
     MainMenu,
     WalletDetails
-  },
-  data() {
-    return {
-      selectedTab: "tab-1"
-    };
   },
   computed: mapState({
     theme: state => state.gateway.app.config.appearance.theme,
@@ -109,25 +133,5 @@ export default {
       padding-left: 16px;
     }
   }
-  
-  .large-btn-send {
-        min-width: 160px;
-        .q-btn-inner > *:last-child {
-            margin-left: auto;
-            padding-left: 8px;
-        }
-        background: #e8efff;
-        color: #16171a;
-    }
-  
-  .large-btn-rec {
-        min-width: 160px;
-        .q-btn-inner > *:last-child {
-            margin-left: auto;
-            padding-left: 8px;
-        }
-        background: #408066;
-        color: black;
-    }
 }
 </style>

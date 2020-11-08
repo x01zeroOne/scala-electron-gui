@@ -6,12 +6,24 @@
           <MainMenu :disable-switch-wallet="true" />
         </template>
         <template v-else>
-          <q-btn class="cancel" icon="reply" flat round dense @click="cancel()" />
+          <q-btn
+            class="cancel"
+            icon="reply"
+            flat
+            round
+            dense
+            @click="cancel()"
+          />
         </template>
-        <q-toolbar-title v-if="page_title == 'Scala'" class="flex items-center justify-center">
+        <q-toolbar-title
+          v-if="page_title == 'Scala'"
+          class="flex items-center justify-center"
+        >
           <img src="scala.svg" height="32" />
         </q-toolbar-title>
-        <q-toolbar-title v-else class="flex items-center justify-center">{{ page_title }}</q-toolbar-title>
+        <q-toolbar-title v-else class="flex items-center justify-center">{{
+          page_title
+        }}</q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -25,7 +37,7 @@
 
 <script>
 import StatusFooter from "components/footer";
-import MainMenu from "components/mainmenu";
+import MainMenu from "components/menus/mainmenu";
 
 export default {
   components: {

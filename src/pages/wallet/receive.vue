@@ -1,7 +1,9 @@
 <template>
   <q-page class="receive">
     <q-list link no-border :dark="theme == 'dark'" class="scala-list">
-      <q-item-label header>{{ $t("strings.addresses.myPrimaryAddress") }}</q-item-label>
+      <q-item-label header>{{
+        $t("strings.addresses.myPrimaryAddress")
+      }}</q-item-label>
       <ReceiveItem
         v-for="address in address_list.primary"
         :key="address.address"
@@ -15,15 +17,20 @@
       />
 
       <template v-if="address_list.used.length">
-        <q-item-label header>{{ $t("strings.addresses.myUsedAddresses") }}</q-item-label>
+        <q-item-label header>{{
+          $t("strings.addresses.myUsedAddresses")
+        }}</q-item-label>
         <ReceiveItem
           v-for="address in address_list.used"
           :key="address.address"
           :address="address"
           :sublabel="
-            `${$t('strings.addresses.subAddress')} (${$t('strings.addresses.subAddressIndex', {
-              index: address.address_index
-            })})`
+            `${$t('strings.addresses.subAddress')} (${$t(
+              'strings.addresses.subAddressIndex',
+              {
+                index: address.address_index
+              }
+            )})`
           "
           :show-q-r="showQR"
           :copy-address="copyAddress"
@@ -32,15 +39,20 @@
       </template>
 
       <template v-if="address_list.unused.length">
-        <q-item-label header>{{ $t("strings.addresses.myUnusedAddresses") }}</q-item-label>
+        <q-item-label header>{{
+          $t("strings.addresses.myUnusedAddresses")
+        }}</q-item-label>
         <ReceiveItem
           v-for="address in address_list.unused"
           :key="address.address"
           :address="address"
           :sublabel="
-            `${$t('strings.addresses.subAddress')} (${$t('strings.addresses.subAddressIndex', {
-              index: address.address_index
-            })})`
+            `${$t('strings.addresses.subAddress')} (${$t(
+              'strings.addresses.subAddressIndex',
+              {
+                index: address.address_index
+              }
+            )})`
           "
           :show-q-r="showQR"
           :copy-address="copyAddress"
@@ -57,24 +69,18 @@
         <q-card class="qr-code-card">
           <div class="text-center q-mb-sm q-pa-md" style="background: white;">
             <QrcodeVue ref="qr" :value="QR.address" size="240"> </QrcodeVue>
-            <!-- This menu appears on right click of QR code -->
-            <q-menu context-menu>
-              <q-list class="context-menu">
-                <q-item v-close-popup clickable @click.native="copyQR()">
-                  <q-item-section>
-                    {{ $t("menuItems.copyQR") }}
-                  </q-item-section>
-                </q-item>
-                <q-item v-close-popup clickable @click.native="saveQR()">
-                  <q-item-section>
-                    {{ $t("menuItems.saveQR") }}
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
+            <ContextMenu
+              :menu-items="menuItems"
+              @copyQR="copyQR()"
+              @saveQR="saveQR()"
+            />
           </div>
           <q-card-actions>
-            <q-btn color="primary" :label="$t('buttons.close')" @click="QR.visible = false" />
+            <q-btn
+              color="primary"
+              :label="$t('buttons.close')"
+              @click="QR.visible = false"
+            />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -88,6 +94,7 @@ import { mapState } from "vuex";
 import QrcodeVue from "qrcode.vue";
 import AddressDetails from "components/address_details";
 import ReceiveItem from "components/receive_item";
+import ContextMenu from "components/menus/contextmenu";
 
 export default {
   filters: {
@@ -105,14 +112,20 @@ export default {
   components: {
     AddressDetails,
     QrcodeVue,
-    ReceiveItem
+    ReceiveItem,
+    ContextMenu
   },
   data() {
+    const menuItems = [
+      { action: "copyQR", i18n: "menuItems.copyQR" },
+      { action: "saveQR", i18n: "menuItems.saveQR" }
+    ];
     return {
       QR: {
         visible: false,
         address: null
-      }
+      },
+      menuItems
     };
   },
   computed: mapState({
@@ -145,13 +158,6 @@ export default {
     },
     copyAddress(address, event) {
       event.stopPropagation();
-
-      for (let i = 0; i < event.path.length; i++) {
-        if (event.path[i].tagName == "BUTTON") {
-          event.path[i].blur();
-          break;
-        }
-      }
       clipboard.writeText(address);
       this.$q.notify({
         type: "positive",

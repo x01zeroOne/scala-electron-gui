@@ -7,33 +7,41 @@
           {{ address }}
         </q-item-section>
         <q-item-section v-if="showCopy" side>
-          <q-btn ref="copy" color="primary" padding="xs" size="sm" icon="file_copy" @click="copyAddress">
-            <q-tooltip anchor="center left" self="center right" :offset="[5, 10]">
+          <q-btn
+            ref="copy"
+            color="primary"
+            padding="xs"
+            size="sm"
+            icon="file_copy"
+            @click="copyAddress"
+          >
+            <q-tooltip
+              anchor="center left"
+              self="center right"
+              :offset="[5, 10]"
+            >
               {{ $t("menuItems.copyAddress") }}
             </q-tooltip>
           </q-btn>
         </q-item-section>
       </q-item-label>
-      <q-item-label v-if="paymentId" header>{{ $t("fieldLabels.paymentId") }}: {{ paymentId }}</q-item-label>
-      <q-item-label v-if="extra" header class="extra non-selectable">{{ extra }}</q-item-label>
+      <q-item-label v-if="extra" header class="extra non-selectable">{{
+        extra
+      }}</q-item-label>
     </q-item-section>
-
-    <q-menu context-menu>
-      <q-list separator class="context-menu">
-        <q-item v-close-popup clickable @click.native="copyAddress($event)">
-          <q-item-section>
-            {{ $t("menuItems.copyAddress") }}
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-menu>
+    <ContextMenu :menu-items="menuItems" @copyAddress="copyAddress" />
   </div>
 </template>
 
 <script>
 const { clipboard } = require("electron");
+import ContextMenu from "components/menus/contextmenu";
+
 export default {
   name: "AddressHeader",
+  components: {
+    ContextMenu
+  },
   props: {
     title: {
       type: String,
@@ -42,11 +50,6 @@ export default {
     address: {
       type: String,
       required: true
-    },
-    paymentId: {
-      type: String,
-      required: false,
-      default: undefined
     },
     extra: {
       type: String,
@@ -60,42 +63,24 @@ export default {
     }
   },
   data() {
-    return {};
+    const menuItems = [
+      { action: "copyAddress", i18n: "menuItems.copyAddress" }
+    ];
+    return {
+      menuItems
+    };
   },
   methods: {
-    copyAddress(event) {
-      if (event) {
-        event.stopPropagation();
-      }
+    copyAddress() {
       if (this.$refs.copy) {
         this.$refs.copy.$el.blur();
       }
       clipboard.writeText(this.address);
-      if (this.paymentId) {
-        this.$q
-          .dialog({
-            title: this.$t("dialog.copyAddress.title"),
-            message: this.$t("dialog.copyAddress.message"),
-            ok: {
-              label: this.$t(`dialog.copyAddress.ok`)
-            }
-          })
-          .onDismiss(() => null)
-          .onCancel(() => null)
-          .onOk(() => {
-            this.$q.notify({
-              type: "positive",
-              timeout: 1000,
-              message: this.$t("notification.positive.addressCopied")
-            });
-          });
-      } else {
-        this.$q.notify({
-          type: "positive",
-          timeout: 1000,
-          message: this.$t("notification.positive.addressCopied")
-        });
-      }
+      this.$q.notify({
+        type: "positive",
+        timeout: 1000,
+        message: this.$t("notification.positive.addressCopied")
+      });
     }
   }
 };

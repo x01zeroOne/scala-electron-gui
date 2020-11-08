@@ -2,27 +2,46 @@
   <q-page>
     <div class="q-mx-md import-old-gui">
       <q-list link dark no-border class="wallet-list">
-        <q-item v-for="state in directory_state" :key="state.directory" :class="{ selected: state.selected }">
+        <q-item
+          v-for="state in directory_state"
+          :key="state.directory"
+          :class="{ selected: state.selected }"
+        >
           <q-item-section>
-            <q-checkbox v-model="state.selected" dark color="dark" />
+            <div class="row items-center">
+              <q-item-label class="items-center">
+                <q-checkbox v-model="state.selected" dark color="dark" />
+              </q-item-label>
+              <q-item-label
+                class="wallet-name"
+                @click.native="state.selected = !state.selected"
+              >
+                {{ state.directory }}
+              </q-item-label>
+            </div>
           </q-item-section>
-          <q-item-label @click.native="state.selected = !state.selected">
-            <q-item-label header>{{ state.directory }}</q-item-label>
-          </q-item-label>
-          <q-item-section>
-            <q-select v-model="state.type" hide-underline dark class="q-ma-none full-width" :options="selectOptions" />
+
+          <q-item-section side>
+            <q-select
+              v-model="state.type"
+              hide-underline
+              dark
+              class="q-ma-none full-width"
+              :options="selectOptions"
+              emit-value
+              map-options
+            />
           </q-item-section>
         </q-item>
       </q-list>
 
-      <q-field>
-        <q-btn
-          color="primary"
-          :label="$tc('buttons.importWallet', 2)"
-          :disable="selectedWallets.length === 0"
-          @click="import_wallets"
-        />
-      </q-field>
+      <q-btn
+        color="primary"
+        class="submit-button"
+        :label="$tc('buttons.importWallet', 2)"
+        :disable="selectedWallets.length === 0"
+        @click="import_wallets"
+      />
     </div>
   </q-page>
 </template>
@@ -81,7 +100,9 @@ export default {
               this.$q.notify({
                 type: "negative",
                 timeout: 3000,
-                message: this.$t("notification.errors.failedWalletImport") + `: ${wallet}`
+                message:
+                  this.$t("notification.errors.failedWalletImport") +
+                  `: ${wallet}`
               });
             });
           }
@@ -97,7 +118,9 @@ export default {
   methods: {
     populate_state() {
       // Keep any directories that intersect
-      const new_state = this.directory_state.filter(state => this.directories.includes(state.directory));
+      const new_state = this.directory_state.filter(state =>
+        this.directories.includes(state.directory)
+      );
 
       // Add in new directories
       this.directories
@@ -138,6 +161,11 @@ export default {
       margin-bottom: 0px;
       padding: 14px;
       border-radius: 3px;
+
+      .wallet-name {
+        padding-left: 24px;
+        font-size: 18px;
+      }
     }
   }
 }

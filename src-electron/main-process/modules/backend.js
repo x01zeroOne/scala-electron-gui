@@ -2,12 +2,21 @@ import { Daemon } from "./daemon";
 import { WalletRPC } from "./wallet-rpc";
 import { SCEE } from "./SCEE-Node";
 import { dialog } from "electron";
+import semver from "semver";
+import axios from "axios";
+import { version } from "../../../package.json";
+const bunyan = require("bunyan");
 
 const WebSocket = require("ws");
+const electron = require("electron");
 const os = require("os");
 const fs = require("fs-extra");
 const path = require("upath");
 const objectAssignDeep = require("object-assign-deep");
+
+const { ipcMain: ipc } = electron;
+
+const LOG_LEVELS = ["fatal", "error", "warn", "info", "debug", "trace"];
 
 export class Backend {
   constructor(mainWindow) {
@@ -21,6 +30,7 @@ export class Backend {
     this.config_file = null;
     this.config_data = {};
     this.scee = new SCEE();
+    this.log = null;
   }
 
   init(config) {
@@ -45,11 +55,10 @@ export class Backend {
     const daemon = {
       type: "remote",
       p2p_bind_ip: "0.0.0.0",
-      p2p_bind_port: 11811,
+      p2p_bind_port: 22022,
       rpc_bind_ip: "127.0.0.1",
-      rpc_bind_port: 11812,
+      rpc_bind_port: 22023,
       zmq_rpc_bind_ip: "127.0.0.1",
-      zmq_rpc_bind_port: 11813,
       out_peers: -1,
       in_peers: -1,
       limit_rate_up: -1,
@@ -60,22 +69,20 @@ export class Backend {
     const daemons = {
       mainnet: {
         ...daemon,
-        remote_host: "scalanode.com",
-        remote_port: 11812
+        remote_host: "imaginary.stream",
+        remote_port: 22023
       },
       stagenet: {
         ...daemon,
         type: "local",
         p2p_bind_port: 38153,
-        rpc_bind_port: 38154,
-        zmq_rpc_bind_port: 38155
+        rpc_bind_port: 38154
       },
       testnet: {
         ...daemon,
         type: "local",
         p2p_bind_port: 38156,
-        rpc_bind_port: 38157,
-        zmq_rpc_bind_port: 38158
+        rpc_bind_port: 38157
       }
     };
 
@@ -104,16 +111,20 @@ export class Backend {
 
     this.remotes = [
       {
-        host: "scalanode.com",
-        port: "11812"
+        host: "imaginary.stream",
+        port: "22023"
       },
       {
-        host: "xlanode.com",
-        port: "11812"
+        host: "nodes.hashvault.pro",
+        port: "22023"
       },
       {
-        host: "mine.scalaproject.io",
-        port: "8000"
+        host: "explorer.scala.aussie-pools.com",
+        port: "18081"
+      },
+      {
+        host: "public.scala.foundation",
+        port: "22023"
       }
     ];
 
@@ -135,7 +146,10 @@ export class Backend {
       data
     };
 
-    let encrypted_data = this.scee.encryptString(JSON.stringify(message), this.token);
+    let encrypted_data = this.scee.encryptString(
+      JSON.stringify(message),
+      this.token
+    );
 
     this.wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
@@ -178,14 +192,22 @@ export class Backend {
       case "quick_save_config":
         // save only partial config settings
         Object.keys(params).map(key => {
-          this.config_data[key] = Object.assign(this.config_data[key], params[key]);
+          this.config_data[key] = Object.assign(
+            this.config_data[key],
+            params[key]
+          );
         });
-        fs.writeFile(this.config_file, JSON.stringify(this.config_data, null, 4), "utf8", () => {
-          this.send("set_app_data", {
-            config: params,
-            pending_config: params
-          });
-        });
+        fs.writeFile(
+          this.config_file,
+          JSON.stringify(this.config_data, null, 4),
+          "utf8",
+          () => {
+            this.send("set_app_data", {
+              config: params,
+              pending_config: params
+            });
+          }
+        );
         break;
       case "save_config_init":
       case "save_config": {
@@ -201,12 +223,18 @@ export class Backend {
         }
 
         Object.keys(params).map(key => {
-          this.config_data[key] = Object.assign(this.config_data[key], params[key]);
+          this.config_data[key] = Object.assign(
+            this.config_data[key],
+            params[key]
+          );
         });
 
         const validated = Object.keys(this.defaults)
           .filter(k => k in this.config_data)
-          .map(k => [k, this.validate_values(this.config_data[k], this.defaults[k])])
+          .map(k => [
+            k,
+            this.validate_values(this.config_data[k], this.defaults[k])
+          ])
           .reduce((map, obj) => {
             map[obj[0]] = obj[1];
             return map;
@@ -218,19 +246,24 @@ export class Backend {
           ...validated
         };
 
-        fs.writeFile(this.config_file, JSON.stringify(this.config_data, null, 4), "utf8", () => {
-          if (data.method == "save_config_init") {
-            this.startup();
-          } else {
-            this.send("set_app_data", {
-              config: this.config_data,
-              pending_config: this.config_data
-            });
-            if (config_changed) {
-              this.send("settings_changed_reboot");
+        fs.writeFile(
+          this.config_file,
+          JSON.stringify(this.config_data, null, 4),
+          "utf8",
+          () => {
+            if (data.method == "save_config_init") {
+              this.startup();
+            } else {
+              this.send("set_app_data", {
+                config: this.config_data,
+                pending_config: this.config_data
+              });
+              if (config_changed) {
+                this.send("settings_changed_reboot");
+              }
             }
           }
-        });
+        );
         break;
       }
       case "init":
@@ -242,14 +275,17 @@ export class Backend {
 
         let path = null;
         if (params.type === "tx") {
-          path = "tx?tx_info=";
+          path = "tx";
         } else if (params.type === "service_node") {
           path = "service_node";
         }
 
         if (path) {
-          const baseUrl = net_type === "testnet" ? "" : "https://explorer.scalaproject.io";
-          const url = `${baseUrl}/${path}`;
+          const baseUrl =
+            net_type === "testnet"
+              ? "https://scalatestnet.com"
+              : "https://scalablocks.com";
+          const url = `${baseUrl}/${path}/`;
           require("electron").shell.openExternal(url + params.id);
         }
         break;
@@ -272,12 +308,18 @@ export class Backend {
             if (err) {
               this.send("show_notification", {
                 type: "negative",
-                i18n: ["notification.errors.errorSavingItem", { item: params.type }],
+                i18n: [
+                  "notification.errors.errorSavingItem",
+                  { item: params.type }
+                ],
                 timeout: 2000
               });
             } else {
               this.send("show_notification", {
-                i18n: ["notification.positive.itemSaved", { item: params.type, filename }],
+                i18n: [
+                  "notification.positive.itemSaved",
+                  { item: params.type, filename }
+                ],
                 timeout: 2000
               });
             }
@@ -290,12 +332,63 @@ export class Backend {
         break;
     }
   }
+  // if the version is a whole minor version out of date (hardfork out of date)
+  // set update required to true
+  async checkVersion() {
+    try {
+      const { data } = await axios.get(
+        "https://api.github.com/repos/scala-project/scala-electron-gui-wallet/releases/latest"
+      );
+      // remove the 'v' from front of the version
+      const latestVersion = data.tag_name.substring(1);
+      // can return "major", "minor", "patch"
+      const vSizeDiff = semver.diff(version, latestVersion);
+      const updateAvailable = semver.ltr(version, latestVersion);
+      const majorOrMinor = vSizeDiff === "major" || vSizeDiff == "minor";
+      const updateRequired = updateAvailable && majorOrMinor;
+      this.send("set_update_required", updateRequired);
+    } catch (e) {
+      this.send("set_updated_required", false);
+    }
+  }
+
+  initLogger(logPath) {
+    let log = bunyan.createLogger({
+      name: "log",
+      streams: [
+        {
+          type: "rotating-file",
+          path: path.join(logPath, "electron.log"),
+          period: "1d", // daily rotation
+          count: 4 // keep 4 days of logs
+        }
+      ]
+    });
+
+    LOG_LEVELS.forEach(level => {
+      ipc.on(`log-${level}`, (first, ...rest) => {
+        log[level](...rest);
+      });
+    });
+
+    this.log = log;
+
+    process.on("uncaughtException", error => {
+      log.error("Unhandled Error", error);
+    });
+
+    process.on("unhandledRejection", error => {
+      log.error("Unhandled Promise Rejection", error);
+    });
+  }
 
   startup() {
     this.send("set_app_data", {
       remotes: this.remotes,
       defaults: this.defaults
     });
+
+    this.checkVersion();
 
     fs.readFile(this.config_file, "utf8", (err, data) => {
       if (err) {
@@ -316,14 +409,20 @@ export class Backend {
         if (!this.config_data.hasOwnProperty(key)) {
           this.config_data[key] = {};
         }
-        this.config_data[key] = Object.assign(this.config_data[key], disk_config_data[key]);
+        this.config_data[key] = Object.assign(
+          this.config_data[key],
+          disk_config_data[key]
+        );
       });
 
       // here we may want to check if config data is valid, if not also send code -1
       // i.e. check ports are integers and > 1024, check that data dir path exists, etc
       const validated = Object.keys(this.defaults)
         .filter(k => k in this.config_data)
-        .map(k => [k, this.validate_values(this.config_data[k], this.defaults[k])])
+        .map(k => [
+          k,
+          this.validate_values(this.config_data[k], this.defaults[k])
+        ])
         .reduce((map, obj) => {
           map[obj[0]] = obj[1];
           return map;
@@ -336,7 +435,12 @@ export class Backend {
       };
 
       // save config file back to file, so updated options are stored on disk
-      fs.writeFile(this.config_file, JSON.stringify(this.config_data, null, 4), "utf8", () => {});
+      fs.writeFile(
+        this.config_file,
+        JSON.stringify(this.config_data, null, 4),
+        "utf8",
+        () => {}
+      );
 
       this.send("set_app_data", {
         config: this.config_data,
@@ -398,6 +502,8 @@ export class Backend {
       if (!fs.existsSync(log_dir)) {
         fs.mkdirpSync(log_dir);
       }
+
+      this.initLogger(log_dir);
 
       this.daemon = new Daemon(this);
       this.walletd = new WalletRPC(this);
@@ -577,7 +683,11 @@ export class Backend {
 
   // Replace any invalid value with default values
   validate_values(values, defaults) {
-    const isDictionary = v => typeof v === "object" && v !== null && !(v instanceof Array) && !(v instanceof Date);
+    const isDictionary = v =>
+      typeof v === "object" &&
+      v !== null &&
+      !(v instanceof Array) &&
+      !(v instanceof Date);
     const modified = { ...values };
 
     // Make sure we have valid defaults
@@ -588,7 +698,10 @@ export class Backend {
       if (!(key in defaults)) continue;
 
       const defaultValue = defaults[key];
-      const invalidDefault = defaultValue === null || defaultValue === undefined || Number.isNaN(defaultValue);
+      const invalidDefault =
+        defaultValue === null ||
+        defaultValue === undefined ||
+        Number.isNaN(defaultValue);
       if (invalidDefault) continue;
 
       const value = modified[key];
@@ -598,7 +711,12 @@ export class Backend {
         modified[key] = this.validate_values(value, defaultValue);
       } else {
         // Check if we need to replace the value
-        const isValidValue = !(value === undefined || value === null || value === "" || Number.isNaN(value));
+        const isValidValue = !(
+          value === undefined ||
+          value === null ||
+          value === "" ||
+          Number.isNaN(value)
+        );
         if (isValidValue) continue;
 
         // Otherwise set the default value

@@ -1,24 +1,31 @@
 <template>
   <q-page class="address-book">
-    <div class="header row q-pt-md q-pb-xs q-mx-md q-mb-none items-center non-selectable">
+    <div
+      class="header row q-pt-md q-pb-xs q-mx-md q-mb-none items-center non-selectable"
+    >
       {{ $t("titles.addressBook") }}
     </div>
 
     <template v-if="address_book_combined.length">
       <q-list link no-border :dark="theme == 'dark'" class="scala-list">
         <q-item
-          v-for="entry in address_book_combined"
-          :key="`${entry.address}-${entry.name}-${entry.payment_id}`"
+          v-for="(entry, index) in address_book_combined"
+          :key="`${entry.address}-${entry.name}-${index}`"
           class="scala-list-item"
           @click.native="details(entry)"
         >
           <q-item-section>
             <q-item-label class="ellipsis">{{ entry.address }}</q-item-label>
-            <q-item-label class="non-selectable" caption>{{ entry.name }}</q-item-label>
+            <q-item-label class="non-selectable" caption>{{
+              entry.name
+            }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-item-label>
-              <q-icon size="24px" :name="entry.starred ? 'star' : 'star_border'" />
+              <q-icon
+                size="24px"
+                :name="entry.starred ? 'star' : 'star_border'"
+              />
               <q-btn
                 color="secondary"
                 style="margin-left: 10px;"
@@ -28,28 +35,12 @@
               />
             </q-item-label>
           </q-item-section>
-
-          <q-menu context-menu>
-            <q-list class="context-menu">
-              <q-item v-close-popup clickable @click.native="details(entry)">
-                <q-item-section>
-                  {{ $t("menuItems.showDetails") }}
-                </q-item-section>
-              </q-item>
-
-              <q-item v-close-popup clickable @click.native="sendToAddress(entry, $event)">
-                <q-item-section>
-                  {{ $t("menuItems.sendToThisAddress") }}
-                </q-item-section>
-              </q-item>
-
-              <q-item v-close-popup clickable @click.native="copyAddress(entry, $event)">
-                <q-item-section>
-                  {{ $t("menuItems.copyAddress") }}
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
+          <ContextMenu
+            :menu-items="menuItems"
+            @showDetails="details(entry)"
+            @sendToAddress="sendToAddress(entry, $event)"
+            @copyAddress="copyAddress(entry)"
+          />
         </q-item>
       </q-list>
     </template>
@@ -58,7 +49,7 @@
     </template>
 
     <q-page-sticky position="bottom-right" :offset="[18, 18]">
-      <q-btn :disable="!is_ready" round color="primary" icon="add" @click="addEntry" />
+      <q-btn round color="primary" icon="add" @click="addEntry" />
     </q-page-sticky>
     <AddressBookDetails ref="addressBookDetails" />
   </q-page>
@@ -68,18 +59,28 @@
 const { clipboard } = require("electron");
 import { mapState } from "vuex";
 import AddressBookDetails from "components/address_book_details";
+import ContextMenu from "components/menus/contextmenu";
 export default {
   components: {
-    AddressBookDetails
+    AddressBookDetails,
+    ContextMenu
+  },
+  data() {
+    const menuItems = [
+      { action: "showDetails", i18n: "menuItems.showDetails" },
+      { action: "sendToAddress", i18n: "menuItems.sendToThisAddress" },
+      { action: "copyAddress", i18n: "menuItems.copyAddress" }
+    ];
+    return {
+      menuItems
+    };
   },
   computed: mapState({
     theme: state => state.gateway.app.config.appearance.theme,
     view_only: state => state.gateway.wallet.info.view_only,
     address_book: state => state.gateway.wallet.address_list.address_book,
-    address_book_starred: state => state.gateway.wallet.address_list.address_book_starred,
-    is_ready() {
-      return this.$store.getters["gateway/isReady"];
-    },
+    address_book_starred: state =>
+      state.gateway.wallet.address_list.address_book_starred,
     address_book_combined() {
       const starred = this.address_book_starred.map(a => ({
         ...a,
@@ -101,54 +102,20 @@ export default {
     },
     sendToAddress(address, event) {
       event.stopPropagation();
-      for (let i = 0; i < event.path.length; i++) {
-        if (event.path[i].tagName == "BUTTON") {
-          event.path[i].blur();
-          break;
-        }
-      }
       this.$router.replace({
         path: "send",
         query: {
-          address: address.address,
-          payment_id: address.payment_id
+          address: address.address
         }
       });
     },
-    copyAddress(entry, event) {
-      event.stopPropagation();
-      for (let i = 0; i < event.path.length; i++) {
-        if (event.path[i].tagName == "BUTTON") {
-          event.path[i].blur();
-          break;
-        }
-      }
+    copyAddress(entry) {
       clipboard.writeText(entry.address);
-      if (entry.payment_id) {
-        this.$q
-          .dialog({
-            title: this.$t("dialog.copyAddress.title"),
-            message: this.$t("dialog.copyAddress.message"),
-            ok: {
-              label: this.$t("dialog.buttons.ok")
-            }
-          })
-          .onDismiss(() => null)
-          .onCancel(() => null)
-          .onOk(() => {
-            this.$q.notify({
-              type: "positive",
-              timeout: 1000,
-              message: this.$t("notification.positive.addressCopied")
-            });
-          });
-      } else {
-        this.$q.notify({
-          type: "positive",
-          timeout: 1000,
-          message: this.$t("notification.positive.addressCopied")
-        });
-      }
+      this.$q.notify({
+        type: "positive",
+        timeout: 1000,
+        message: this.$t("notification.positive.addressCopied")
+      });
     }
   }
 };
