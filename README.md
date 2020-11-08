@@ -2,22 +2,19 @@
 
 ### Introduction
 
-Scala is a private cryptocurrency based on Monero. Scala aims to provide a private data transmission layer using a second layer of Service Nodes.
-More information on the project can be found on the [website](https://scala.network) and in the [whitepaper](https://scala.network/whitepaper). Scala is an open source project, and we encourage contributions from anyone with something to offer.
+Scala is a private cryptocurrency based on Monero. Scala aims to provide everyone the ability to mine and transact with ease and security. More information on the project can be found on the [website](https://scalaproject.io).
 
 <p align="center">
- <img src="https://raw.githubusercontent.com/KeeJef/scala-electron-gui-wallet/master/src-electron/icons/mrcuug.PNG" width="600">
+ <img src="https://i.imgur.com/M6IsWEa.png" width="600">
 </p>
 
 ### About this project
 
 This is the new electron GUI for Scala. It is open source and completely free to use without restrictions, anyone may create an alternative implementation of the Scala Electron GUI that uses the protocol and network in a compatible manner.
 
-Please submit any changes as pull requests to the development branch, all changes are assessed in the development branch before being merged to master, release tags are considered stable builds for the GUI.
-
 #### Pre-requisites
 
-- Download latest [Scalad](https://github.com/scala-project/scala/releases/latest)
+- Download latest [Scalad](https://github.com/scala-network/scala/releases/latest)
 - Extract the scalad binaries to a folder
 
 #### Commands
@@ -25,8 +22,8 @@ Please submit any changes as pull requests to the development branch, all change
 ```
 nvm use 14.11.0
 npm install -g @quasar/cli
-git clone https://github.com/scala-project/scala-electron-gui-wallet
-cd scala-electron-gui-wallet
+git clone https://github.com/scala-network/scala-electron-gui
+cd scala-electron-gui
 cp path_to_scalad_binaries/scalad bin/
 cp path_to_scalad_binaries/scala-wallet-rpc bin/
 npm install
